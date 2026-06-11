@@ -82,3 +82,50 @@ export const findBookings = async (req, res) => {
         });
     }
 };
+export const deleteBooking = async (req, res) => {
+    const { bookingId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+        return res.status(400).json({
+            message: "Invalid booking id"
+        });
+    }
+
+    try {
+        // Find booking
+        const booking = await Booking.findById(bookingId);
+
+        if (!booking) {
+            return res.status(404).json({
+                message: "Booking not found"
+            });
+        }
+
+        // Find related event
+        const event = await Event.findById(booking.eventId);
+
+        if (!event) {
+            return res.status(404).json({
+                message: "Event not found"
+            });
+        }
+
+        // Restore seats
+        event.availableSeats += booking.seatsBooked;
+        await event.save();
+
+        // Delete booking
+        await booking.deleteOne();
+
+        return res.status(200).json({
+            message: "Booking cancelled successfully"
+        });
+
+    } catch (error) {
+        console.error("Error deleting booking:", error);
+
+        return res.status(500).json({
+            message: "Failed to cancel booking"
+        });
+    }
+};
