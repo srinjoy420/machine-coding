@@ -47,3 +47,17 @@ export const createEvent = async (req, res) => {
         });
     }
 };
+export const getAll=async(req,res)=>{
+    try {
+        const events=await Event.find()
+        if(events.length===0){
+            return res.status(404).json("cant find any active event")
+        }
+        res.status(200).json({message:"events found succesfully",events})
+    } catch (error) {
+        console.log("there is a error to fetch the event");
+        res.status(400).json({message:"cant found events"})
+        
+        
+    }
+}
